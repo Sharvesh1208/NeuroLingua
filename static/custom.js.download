@@ -1,0 +1,138 @@
+$( document ).ready(function() {
+  jQuery(".button--primary").addClass("registerfrm");
+  
+});
+$( document ).ready(function() {
+  jQuery("#block-jalshakti-content").addClass("hidebtn");
+  
+});
+$(window).on('popstate', function(event) {
+  //alert("You are going to back page. Can work that?");
+});
+
+/*$(document).ready(function () {
+	$("#edit-submit").click(function(){
+	//debugger
+    $.ajax({url: "http://localhost/jalshaktid9/user/register", success: function(result){
+        if(result === 'sent') {  
+           // do the alert here
+		   alert('Hello');
+        }
+    }});
+});
+});*/
+
+ 
+$(document).ready(function () {
+            $(".registerfrm").click(function () {
+                alert("Thank you for registering . Your application for an account is currently pending approval. Kindly contact to Admin.");
+            });
+        });
+		
+	$(window).load(function(){
+ MIS_rec1 = [];
+  var protocol = window.location.protocol;
+			
+          if (protocol == "http:") {
+              url = 'https://ejalshakti.gov.in/mRWSRestService/RestServiceImpl.svc/GetHouseHoldConnectionDetails';
+          }
+          else {
+             url = 'https://ejalshakti.gov.in/mRWSRestService/RestServiceImpl.svc/GetHouseHoldConnectionDetails';
+          }
+            data = 'uid=13E1741553F5F99FB0141086567EBCEF&pwd=4FF1C29DF0EE798A3ED23C9144C343AB';
+            node = 'nodes';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: data,
+                crossDomain: true,
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "xml",
+                async: false,
+                success: function (data) {
+                    var count = 0;
+                    var cnt = 0;
+                    var k = 0;
+                    MIScontent = data.getElementsByTagName(node);
+                    MIS_rec = [];
+                    try {
+                        for (var i = 0; i < MIScontent.length; i++) {
+                            MIS_rec[i] = {};
+                            var columns = MIScontent[i].getElementsByTagName("*");
+                            for (var j = 0; j < columns.length; j++) {
+                                if (MIScontent[i].getElementsByTagName(columns[j].tagName)[0].childNodes.length > 0) {
+                                    if (columns[j].tagName != 'node') {
+                                        if (count == 0) {
+                                            cnt++;
+                                        }
+                                        MIS_rec[i][columns[j].tagName] = MIScontent[i].getElementsByTagName(columns[j].tagName)[k].childNodes[0].data;
+                                    }
+                                    else {
+                                        if (cnt >= 1) {
+                                            if (count == 0) {
+                                                count++;
+                                                k = 1;
+                                            }
+                                            else {
+                                                k++;
+                                            }
+                                            MIS_rec1.push({
+                                               TotalHousehold: MIS_rec[0].hh,
+												TotalHC: MIS_rec[0].hc,
+												TotalHC2019: MIS_rec[0].hc1920
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            MIS_rec1.push({
+                                TotalHousehold: MIS_rec[0].hh,
+                                TotalHC: MIS_rec[0].hc,
+                                TotalHC2019: MIS_rec[0].hc1920
+                            });
+                        }
+                       
+                       
+                    }
+                    catch (e) {
+                    }
+					
+					stateinfo=MIS_rec1;
+					var tot_TotalHousehold=0;
+					var tot_TotalHC=0;
+					var tot_TotalHC2019=0;
+					var per='0.00';
+					
+					for (var i = 0; i < stateinfo.length; i++) {
+						tot_TotalHousehold += parseInt(stateinfo[i].TotalHousehold);
+						tot_TotalHC += parseInt(stateinfo[i].TotalHC);
+						tot_TotalHC2019 += parseInt(stateinfo[i].TotalHC2019);
+					}
+					
+					per=parseFloat(parseInt(tot_TotalHC)*100/parseInt(tot_TotalHousehold)).toFixed(2)+' %';
+					
+					$("#lblhouseholdperc").html(per);
+					counter();
+					
+                },
+                failure: function(jqXHR, textStatus, errorThrown) {
+                            alert("error" + textStatus);
+                        }
+            });
+});
+
+$(window).scroll(function() {
+            if ($(this).scrollTop() > 20) {
+                $('#toTopBtn').fadeIn();
+            } else {
+                $('#toTopBtn').fadeOut();
+            }
+        });
+
+        $('#toTopBtn').click(function() {
+            $("html, body").animate({
+                scrollTop: 0
+            }, 1000);
+            return false;
+        });
+		
