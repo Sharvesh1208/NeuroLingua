@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - E. Coli Detection Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .dashboard-card {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-2xl">
+        <div class="dashboard-card rounded-xl shadow-2xl p-8">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">User Dashboard</h1>
+                <p class="text-gray-600 mt-2">E. Coli Detection Portal</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-blue-100 p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold text-blue-800 mb-4">Profile Information</h2>
+                    <div id="userProfileDetails">
+                        <p class="mb-2"><strong>Name:</strong> <span id="userName">Loading...</span></p>
+                        <p class="mb-2"><strong>Phone:</strong> <span id="userPhone">Loading...</span></p>
+                        <p class="mb-2"><strong>State:</strong> <span id="userState">Loading...</span></p>
+                        <p class="mb-2"><strong>Town:</strong> <span id="userTown">Loading...</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-green-100 p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold text-green-800 mb-4">Quick Actions</h2>
+                    <div class="space-y-4">
+                        <button onclick="startNewTest()" class="w-full bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition duration-300">
+                            Start New E. Coli Test
+                        </button>
+                        <button onclick="viewPreviousTests()" class="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                            View Previous Tests
+                        </button>
+                        <button onclick="logout()" class="w-full bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 transition duration-300">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="testResults" class="mt-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Recent Test Results</h2>
+                <div id="testResultsContent" class="bg-gray-100 p-4 rounded-lg">
+                    <!-- Test results will be dynamically populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVazIeGCASyfCka3nU_INuZytrTdSVmXo",
+            authDomain: "snippetscript-37175.firebaseapp.com",
+            projectId: "snippetscript-37175",
+            storageBucket: "snippetscript-37175.appspot.com",
+            messagingSenderId: "154274113551",
+            appId: "1:154274113551:web:4e9582f3a24f7d12695b7a",
+            measurementId: "G-PSR30H9GH6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Check if user is logged in
+        function checkUserLoggedIn() {
+            const userPhone = localStorage.getItem('userPhone');
+            if (!userPhone) {
+                // If no phone number in localStorage, redirect back to login
+                window.location.href = 'index.html';
+                return null;
+            }
+            return userPhone;
+        }
+
+        // Load user profile
+        async function loadUserProfile() {
+            const userPhone = checkUserLoggedIn();
+            if (!userPhone) return;
+
+            try {
+                const userDocRef = doc(db, "users", userPhone);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('userName').textContent = userData.name;
+                    document.getElementById('userPhone').textContent = userData.phone;
+                    document.getElementById('userState').textContent = userData.state;
+                    document.getElementById('userTown').textContent = userData.town;
+                }
+            } catch (error) {
+                console.error("Error loading user profile:", error);
+                alert("Could not load user profile");
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('userPhone');
+            window.location.href = 'index.html';
+        }
+
+        // Placeholder functions for dashboard actions
+        function startNewTest() {
+            alert('E. Coli Test functionality will be implemented in future updates');
+        }
+
+        function viewPreviousTests() {
+            const testResultsDiv = document.getElementById('testResults');
+            testResultsDiv.classList.toggle('hidden');
+            document.getElementById('testResultsContent').innerHTML = `
+                <p class="text-gray-600">No previous test results available.</p>
+            `;
+        }
+
+        // Attach functions to window
+        window.logout = logout;
+        window.startNewTest = startNewTest;
+        window.viewPreviousTests = viewPreviousTests;
+
+        // Load user profile when page loads
+        loadUserProfile();
+    </script>
+</body>
+</html>

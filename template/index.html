@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E. Coli Detection Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .form-card {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .toggle-btn {
+            transition: all 0.3s ease;
+        }
+        .toggle-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-md">
+        <div class="form-card rounded-xl shadow-2xl p-6">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">E. Coli Detection Portal</h1>
+                <p class="text-gray-600 mt-2">Secure User Management System</p>
+            </div>
+
+            <!-- Toggle Buttons -->
+            <div class="flex justify-center space-x-4 mb-6">
+                <button id="userModeBtn" class="toggle-btn px-4 py-2 bg-blue-500 text-white rounded-lg focus:outline-none">
+                    User Mode
+                </button>
+                <button id="govtModeBtn" class="toggle-btn px-4 py-2 bg-green-500 text-white rounded-lg focus:outline-none">
+                    Govt Mode
+                </button>
+            </div>
+
+            <!-- User Registration/Login Form -->
+            <div id="userSection" class="space-y-4">
+                <div id="registrationForm">
+                    <h2 class="text-xl font-semibold text-center mb-4">User Registration</h2>
+                    <input type="text" id="name" placeholder="Full Name" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="tel" id="phone" placeholder="Phone Number" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="text" id="aadhar" placeholder="Aadhar Number" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="text" id="state" placeholder="State" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="text" id="town" placeholder="Town/City" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="text" id="pincode" placeholder="Pincode" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="password" id="password" placeholder="Set Password" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <button onclick="registerUser()" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition duration-300">
+                        Register
+                    </button>
+                    <p class="text-center mt-3 text-sm text-gray-600">
+                      <a href="#" id="switchToLogin" class="text-blue-600 hover:underline">Already have an account? Login</a>
+                  </p>
+                </div>
+
+                <div id="loginForm" class="hidden">
+                    <h2 class="text-xl font-semibold text-center mb-4">User Login</h2>
+                    <input type="tel" id="loginPhone" placeholder="Phone Number" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-300">
+                    <button onclick="userLogin()" class="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition duration-300">
+                        Login
+                    </button>
+                    <p class="text-center mt-3 text-sm text-gray-600">
+                        <a href="#" id="switchToRegister" class="text-blue-600 hover:underline">Need an account? Register</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Government Login Form -->
+            <div id="govtSection" class="hidden space-y-4">
+                <h2 class="text-xl font-semibold text-center mb-4">Government Authority Portal</h2>
+                <input type="text" id="govtUsername" placeholder="Username" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-green-300">
+                <input type="password" id="govtPassword" placeholder="Password" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-green-300">
+                <button onclick="govtLogin()" class="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition duration-300">
+                    Login
+                </button>
+                <div id="userHistoryContainer" class="mt-4 max-h-60 overflow-y-auto bg-gray-100 p-4 rounded-lg">
+                    <div id="history"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVazIeGCASyfCka3nU_INuZytrTdSVmXo",
+            authDomain: "snippetscript-37175.firebaseapp.com",
+            projectId: "snippetscript-37175",
+            storageBucket: "snippetscript-37175.appspot.com",
+            messagingSenderId: "154274113551",
+            appId: "1:154274113551:web:4e9582f3a24f7d12695b7a",
+            measurementId: "G-PSR30H9GH6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Mode Toggle Functionality
+        document.getElementById('userModeBtn').addEventListener('click', () => {
+            document.getElementById('userSection').classList.remove('hidden');
+            document.getElementById('govtSection').classList.add('hidden');
+        });
+
+        document.getElementById('govtModeBtn').addEventListener('click', () => {
+            document.getElementById('userSection').classList.add('hidden');
+            document.getElementById('govtSection').classList.remove('hidden');
+        });
+
+        // Switch between Login and Register
+        document.getElementById('switchToRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('registrationForm').classList.remove('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
+        });
+
+        // Switch between Register and Login
+        document.getElementById('switchToLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registrationForm').classList.add('hidden');
+        });
+// Register User
+async function registerUser() {
+    const name = document.getElementById("name").value;
+    const phone = document.getElementById("phone").value;
+    const aadhar = document.getElementById("aadhar").value;
+    const state = document.getElementById("state").value;
+    const town = document.getElementById("town").value;
+    const pincode = document.getElementById("pincode").value;
+    const password = document.getElementById("password").value;
+
+    // Enhanced Validation
+    if (!name || !phone || !aadhar || !state || !town || !pincode || !password) {
+        alert("Please fill in all fields!");
+        return;
+    }
+
+    // Validate phone number (10 digits)
+    if (!/^\d{10}$/.test(phone)) {
+        alert("Please enter a valid 10-digit phone number!");
+        return;
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+        alert("Password must be at least 6 characters long!");
+        return;
+    }
+
+    try {
+        // Check if phone number already exists
+        const existingUserQuery = await getDocs(query(collection(db, "users"), where("phone", "==", phone)));
+        
+        if (!existingUserQuery.empty) {
+            alert("This phone number is already registered!");
+            return;
+        }
+
+        await setDoc(doc(db, "users", phone), {
+            name, phone, aadhar, state, town, pincode, password,
+            registeredAt: new Date().toISOString()
+        });
+        
+        // Show success message first
+        alert("User registered successfully!");
+        
+        // Store phone number in localStorage
+        localStorage.setItem('userPhone', phone);
+        
+        // Redirect to user dashboard after a short delay
+        setTimeout(() => {
+            window.location.href = 'user-dashboard';
+        }, 1000);
+    } catch (error) {
+        alert("Error registering user: " + error.message);
+    }
+}
+
+// User Login
+async function userLogin() {
+    const phone = document.getElementById("loginPhone").value;
+    const password = document.getElementById("loginPassword").value;
+
+    // Validate inputs
+    if (!phone || !password) {
+        alert("Please enter both phone number and password!");
+        return;
+    }
+
+    try {
+        // Query to find user by phone number
+        const userQuery = query(collection(db, "users"), where("phone", "==", phone));
+        const querySnapshot = await getDocs(userQuery);
+
+        if (!querySnapshot.empty) {
+            // User found, verify password
+            const userData = querySnapshot.docs[0].data();
+            
+            if (userData.password === password) {
+                // Show success message first
+                alert("Login successful!");
+                
+                // Store phone number in localStorage for session tracking
+                localStorage.setItem('userPhone', phone);
+                
+                // Redirect to user dashboard after a short delay
+                setTimeout(() => {
+                    window.location.href = 'user-dashboard';
+                }, 1000);
+            } else {
+                // Incorrect password
+                alert("Invalid phone number or password!");
+            }
+        } else {
+            // No user found with this phone number
+            alert("Invalid phone number or password!");
+        }
+    } catch (error) {
+        alert("Error logging in: " + error.message);
+    }
+}
+        // Government Login
+        async function govtLogin() {
+            const username = document.getElementById("govtUsername").value;
+            const password = document.getElementById("govtPassword").value;
+
+            if (username === "govt" && password === "password") {
+                const userCollection = await getDocs(collection(db, "users"));
+                const historyDiv = document.getElementById("history");
+                historyDiv.innerHTML = "<h3 class='text-lg font-bold mb-2'>Registered Users</h3>";
+                userCollection.forEach(doc => {
+                    const data = doc.data();
+                    historyDiv.innerHTML += `
+                        <div class="bg-white p-3 rounded-lg shadow-sm mb-2">
+                            <p class="font-medium">${data.name}</p>
+                            <p class="text-sm text-gray-600">Phone: ${data.phone} | State: ${data.state}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                alert("Invalid login credentials!");
+            }
+        }
+
+        // Attach functions to window
+        window.registerUser = registerUser;
+        window.userLogin = userLogin;
+        window.govtLogin = govtLogin;
+    </script>
+</body>
+</html>
